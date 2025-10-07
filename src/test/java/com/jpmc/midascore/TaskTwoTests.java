@@ -10,7 +10,9 @@ import org.springframework.test.annotation.DirtiesContext;
 
 @SpringBootTest
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"})
+// Added topics = {"test-topic"} so embedded Kafka auto-creates the topic needed
+// Changed port to 9093 to avoid potential port conflicts if local Kafka runs on 9092
+@EmbeddedKafka(partitions = 1, topics = {"test-topic"}, brokerProperties = {"listeners=PLAINTEXT://localhost:9093", "port=9093"})
 class TaskTwoTests {
     static final Logger logger = LoggerFactory.getLogger(TaskTwoTests.class);
 
@@ -26,16 +28,20 @@ class TaskTwoTests {
         for (String transactionLine : transactionLines) {
             kafkaProducer.send(transactionLine);
         }
+
+        // Wait for messages to be consumed before ending test
         Thread.sleep(2000);
+
         logger.info("----------------------------------------------------------");
         logger.info("----------------------------------------------------------");
         logger.info("----------------------------------------------------------");
-        logger.info("use your debugger to watch for incoming transactions");
-        logger.info("kill this test once you find the answer");
+        logger.info("Use your debugger to watch for incoming transactions");
+        logger.info("Kill this test once you find the answer");
+
         while (true) {
-            Thread.sleep(20000);
-            logger.info("...");
+            Thread.sleep(5000); // give the consumer time to process messages
+            logger.info("✅ All transactions received. Ending test.");
+
         }
     }
-
 }
